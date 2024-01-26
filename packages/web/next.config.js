@@ -11,7 +11,6 @@ const packageJson = require(`${
 
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
-  target: "serverless",
   poweredByHeader: false,
   trailingSlash: true,
   serverRuntimeConfig: {
@@ -25,17 +24,6 @@ module.exports = withBundleAnalyzer({
         "process.env.NEXT_BUILD_ID": JSON.stringify(buildId)
       })
     );
-
-    // #NEXTJS-HACK
-    // Fix when the app is running inside `node_modules` (https://github.com/vercel/next.js/issues/19739)
-    // TODO: remove this fix when this PR is merged: https://github.com/vercel/next.js/pull/19749
-    const originalExcludeMethod = config.module.rules[0].exclude;
-    config.module.rules[0].exclude = (excludePath) => {
-      if (!originalExcludeMethod(excludePath)) {
-        return false;
-      }
-      return /node_modules/.test(excludePath.replace(config.context, ""));
-    };
 
     // To avoid issues with fsevents during the build, especially on macOS
     config.externals.push("chokidar");

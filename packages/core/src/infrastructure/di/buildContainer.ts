@@ -34,19 +34,17 @@ export function buildContainer(
   });
 
   // Repositories
-  Object.values(repositories).forEach((Repository) => {
+
+  Object.entries(repositories).forEach(([key, Repository]) => {
     container.register(
-      lowerCaseFirstLetter(Repository.name),
+      lowerCaseFirstLetter(key),
       asClass<unknown>(Repository).singleton()
     );
   });
 
   // Command handlers
-  Object.values(adrCommandHandlers).forEach((Handler) => {
-    container.register(
-      Handler.name,
-      asClass<CommandHandler>(Handler).singleton()
-    );
+  Object.entries(adrCommandHandlers).forEach(([key, Handler]) => {
+    container.register(key, asClass<CommandHandler>(Handler).singleton());
   });
 
   // Command bus
@@ -54,8 +52,8 @@ export function buildContainer(
     commandBus: asFunction(() => {
       const bus = new CommandBus();
 
-      Object.values(adrCommandHandlers).forEach((Handler) => {
-        const handlerInstance = container.resolve<CommandHandler>(Handler.name);
+      Object.entries(adrCommandHandlers).forEach(([key]) => {
+        const handlerInstance = container.resolve<CommandHandler>(key);
         bus.registerHandler(handlerInstance, handlerInstance.commandClass);
       });
 
@@ -64,11 +62,8 @@ export function buildContainer(
   });
 
   // Query handlers
-  Object.values(adrQueryHandlers).forEach((Handler) => {
-    container.register(
-      Handler.name,
-      asClass<QueryHandler>(Handler).singleton()
-    );
+  Object.entries(adrQueryHandlers).forEach(([key, Handler]) => {
+    container.register(key, asClass<QueryHandler>(Handler).singleton());
   });
 
   // Query bus
@@ -76,8 +71,8 @@ export function buildContainer(
     queryBus: asFunction(() => {
       const bus = new QueryBus();
 
-      Object.values(adrQueryHandlers).forEach((Handler) => {
-        const handlerInstance = container.resolve<QueryHandler>(Handler.name);
+      Object.entries(adrQueryHandlers).forEach(([key]) => {
+        const handlerInstance = container.resolve<QueryHandler>(key);
         bus.registerHandler(handlerInstance, handlerInstance.queryClass);
       });
 

@@ -1,13 +1,14 @@
 import chalk from "chalk";
 import build from "next/dist/build";
 import exportApp from "next/dist/export";
-import loadConfig from "next/dist/next-server/server/config";
-import { PHASE_EXPORT } from "next/dist/next-server/lib/constants";
 import path from "path";
 import mkdirp from "mkdirp";
 import { makeBadge } from "badge-maker";
 import { promises as fsP } from "fs";
 import type { AppConsole } from "@log4brains/cli-common";
+import { Span } from "next/dist/trace";
+import loadConfig from "next/dist/server/config";
+import { PHASE_EXPORT } from "next/dist/shared/lib/constants";
 import { getLog4brainsInstance } from "../../lib/core-api";
 import { getNextJsDir } from "../../lib/next";
 import { Search } from "../../lib/search";
@@ -60,12 +61,18 @@ export async function buildCommand(
 
   appConsole.debug("Run `next export`...");
   await execNext(async () => {
+    await loadConfig(PHASE_EXPORT, nextDir, { customConfig: nextCustomConfig });
     await exportApp(
       nextDir,
       {
-        outdir: outPath
+        outdir: outPath,
+        enabledDirectories: {
+          pages: true,
+          app: true
+        },
+        buildExport: true
       },
-      await loadConfig(PHASE_EXPORT, nextDir, nextCustomConfig) // Configuration is not handled like in build() here
+      new Span({ name: "export" })
     );
   });
 
